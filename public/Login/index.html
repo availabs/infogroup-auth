@@ -1,0 +1,53 @@
+<html>
+<script type="application/javascript">
+    function validate() {
+        var attempt = 3;
+        var obj = {email: document.getElementById("email").value,password:document.getElementById("password").value};
+        //var username = document.getElementById("username").value;
+        //var password = document.getElementById("password").value;
+        var postData = JSON.stringify(obj);
+        console.log('posting...', postData);
+        fetch('/login', {
+            method: 'POST',
+            body: postData,
+            headers: {
+                "Content-Type": "application/json"
+            }
+        }).then(function(response) {
+            return response.json();
+        }).then(function(data) {
+            console.log('we got something back from the server',data)
+        });
+        // if (username == "test@test.com" && password == "password") {
+        //     alert("Login successfully");
+        //     return false
+        // }
+        // else {
+        //     attempt--;// Decrementing by one.
+        //     alert("Login failed! You have " + attempt + " attempts left;");
+        //     // Disabling fields after 3 attempts.
+        //     if (attempt == 0) {
+        //         document.getElementById("username").disabled = true;
+        //         document.getElementById("password").disabled = true;
+        //         document.getElementById("submit").disabled = true;
+        //         return false;
+        //     }
+        // }
+    }
+    /*
+    fetch('/login', {})
+            .then(data => {
+                //get response from login
+            })
+    })*/
+</script>
+
+<form id="form_id" method="post" name="myform">
+>
+    <label>Email:</label>
+    <input type='text' name="email" id="email"/>
+    <label>Password:</label>
+    <input type="password" name="password" id="password"/>
+    <button type="button" value="Login" id="submit" onclick="validate()">Submit</button>
+</form>
+</html>
