@@ -3,11 +3,13 @@ var path = require('path');
 var passport = require('passport');
 var router = express.Router();
 var uuid = require('uuid/v4');
-var session = require('express-session');
+//var session = require('express-session');
 //var FileStore = require('session-file-store')(session);
 var passport = require('passport');
 //var bodyParser = require('body-parser');
 //var LocalStrategy = require('passport-local').Strategy;
+
+
 
 let byZip = require('../controllers/byZip');
 let byId = require('../controllers/byId');
@@ -61,54 +63,80 @@ router.get('/api/advancedSearch', advancedSearch);
 //TODO: check for auth and permission
 // router.post('/edit/:bus_id', editBusiness);
 // router.put('/:audit_id', approveBusiness);
-
 /* GET home page. */
 router.get('/', function(req, res, next) {
-    res.sendFile(path.join(__dirname, '../public/index.html'));
-    console.log('Inside the homepage callback function');
+    //console.log('Inside the homepage callback function')
+    //console.log(req.sessionID);
+    if(req.isAuthenticated()) {
+        res.sendFile(path.join(__dirname, '../public/home.html'));
+    } else {
+        res.redirect('/login')
+    }
+    // res.send(`You hit home page!\n`)
+
+});
+
+router.get('/login', function(req, res, next) {
+    console.log('Inside GET /login callback function');
     console.log(req.sessionID);
-    res.send(`You got home page!\n`)
-});
-
-router.get('*', function(req, res, next) {
-    console.log('this is a 404')
-    res.sendFile(path.join(__dirname, '../public//404.html'));
-});
-
-router.get('/Login', function(req, res, next) {
-    let uniqueId = uuid();
-    res.send(`Hit home page. Received the unique id: ${uniqueId}\n`);
-    console.log({uniqueId});
-    res.sendFile(path.join(__dirname, '../public/Login/index.html'));
+    // res.send(`You got the login page!\n`);
+    res.sendFile(path.join(__dirname, '../public/login_files/index.html'));
 });
 
 
-router.post('/Login',function(req, res,next) {
+router.post('/login',function(req, res,next) {
     console.log('Inside POST /login callback');
     passport.authenticate('local', (err, user, info) => {
-        console.log('Inside passport.authenticate() callback');
-        console.log(`req.session.passport: ${JSON.stringify(req.session.passport)}`);
-        console.log(`req.user: ${JSON.stringify(req.user)}`);
+        console.log('authenticated', err, user, info);
+        if(info) {return res.json(info.message)}
+        if (err) { return next(err); }
+        if (!user) { return res.json('not authenticated'); }
         req.login(user, (err) => {
-            console.log('Inside req.login() callback');
-            console.log(`req.session.passport: ${JSON.stringify(req.session.passport)}`);
-            console.log(`req.user: ${JSON.stringify(req.user)}`);
-            return res.send({status: 'logged in'});
+            if (err) {
+                res.status(200).json({
+                    message: 'Welcome to the project infogroup'
+                });
+                return next(err);
+            }
+            else {
+                return res.json({status: 'logged in'});
+
+            }
+            })
+        .catch((error) => {
+                console.log(error);
+
         })
     })(req, res, next);
 });
 
 
+
 router.get('/authrequired',function(req, res,next) {
-    console.log('Inside auth');
-    console.log('Inside GET /authrequired callback');
-    console.log(`User authenticated? ${req.isAuthenticated()}`);
     if(req.isAuthenticated()) {
-        res.send(`you hit the authentication endpoint 123\n ${JSON.stringify(req.user)}`)
+        res.send('you hit the authentication endpoint\n');
     } else {
         res.redirect('/')
     }
 
+});
+
+router.get('/logout',function(req, res,next){
+    if (req.session){
+        req.session.destroy(function(err){
+            if(err) {
+                return next(err);
+            } else {
+                console.log('you are logged out, Please log in again!\n')
+                return res.redirect('/login');
+            }
+        });
+    }
+});
+
+router.get('*', function(req, res, next) {
+    console.log('this is a 404');
+    res.sendFile(path.join(__dirname, '../public//404.html'));
 });
 
 
